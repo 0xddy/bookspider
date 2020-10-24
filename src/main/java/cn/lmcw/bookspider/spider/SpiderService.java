@@ -13,29 +13,45 @@ public class SpiderService {
     /**
      * 存放定时任务的
      */
-    public static List<SpiderService> scheduleRuntime = new ArrayList<>();
+    public static List<SpiderService> spiderServices = new ArrayList<>();
 
-    public static boolean taskRunning(String key) {
+    public static boolean taskRunning(String projectId, String tag) {
         boolean running = false;
-        for (SpiderService spiderService : scheduleRuntime) {
-            if (spiderService.engineBridge.project().getId().equals(key)) {
+        List<SpiderService> removeStopObject = new ArrayList<>();
+        for (SpiderService spiderService : spiderServices) {
+            if (spiderService.engineBridge.project().getId().equals(projectId)
+                    && spiderService.runtime.getTag().equals(tag)) {
                 running = true;
             }
+            if (spiderService.runtime.getExecutorService().isTerminated()) {
+                removeStopObject.add(spiderService);
+            }
         }
+        spiderServices.removeAll(removeStopObject);
         return running;
     }
 
-    public static void removeScheduleTask(String key) {
-        SpiderService tempSpiderService = null;
-        for (SpiderService spiderService : scheduleRuntime) {
-            if (spiderService.engineBridge.project().getId().equals(key)) {
-                spiderService.runtime.shutdown();
-                tempSpiderService = spiderService;
+    public static void removeScheduleTask(String projectId, String tag) {
+//        SpiderService tempSpiderService = null;
+//        for (SpiderService spiderService : spiderServices) {
+//            if (projectId.equals(spiderService.engineBridge.project().getId())
+//                    && spiderService.runtime.getTag().equals(tag)) {
+//                spiderService.runtime.shutdown();
+//                tempSpiderService = spiderService;
+//            }
+//        }
+//        if (tempSpiderService != null) {
+//            spiderServices.remove(tempSpiderService);
+//        }
+
+        for (SpiderService spiderService : spiderServices) {
+            if (projectId.equals(spiderService.engineBridge.project().getId())
+                    && spiderService.runtime.getTag().equals(tag)) {
+                spiderService.stop();
+                break;
             }
         }
-        if (tempSpiderService != null) {
-            scheduleRuntime.remove(tempSpiderService);
-        }
+
     }
 
 
@@ -46,7 +62,7 @@ public class SpiderService {
     // 数据回调
     protected CrawListener crawListener;
     // 网络请求拦截器
-    protected RequestInterceptor requestInterceptor = new RequestImpl();
+    protected RequestInterceptor request = new RequestImpl();
 
     public void setCrawListener(CrawListener crawListener) {
         this.crawListener = crawListener;
@@ -60,5 +76,9 @@ public class SpiderService {
         this.engineBridge = engineBridge;
     }
 
+    public void stop(){
+        runtime.shutdown();
+        spiderServices.remove(this);
+    }
 
 }

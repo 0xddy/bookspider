@@ -11,18 +11,18 @@ var project = {
 };
 
 var category = [
-    {title: '玄幻小说', id: 1, page: {start: 1, end: 1429}},
-    {title: '修真小说', id: 2, page: {start: 1, end: 555}},
-    {title: '言情小说', id: 3, page: {start: 1, end: 852}},
-    {title: '历史小说', id: 4, page: {start: 1, end: 260}},
-    {title: '网游小说', id: 5, page: {start: 1, end: 233}},
-    {title: '科幻小说', id: 6, page: {start: 1, end: 608}},
-    {title: '官场小说', id: 7, page: {start: 1, end: 339}},
-    {title: '穿越小说', id: 8, page: {start: 1, end: 519}},
-    {title: '其他小说', id: 9, page: {start: 1, end: 25}}
+    {title: '玄幻小说', id: 1, page: {start: 1, end: 1429}, posto: 1},
+    {title: '修真小说', id: 2, page: {start: 1, end: 555}, posto: 2},
+    {title: '言情小说', id: 3, page: {start: 1, end: 852}, posto: 3},
+    {title: '历史小说', id: 4, page: {start: 1, end: 260}, posto: 4},
+    {title: '网游小说', id: 5, page: {start: 1, end: 233}, posto: 5},
+    {title: '科幻小说', id: 6, page: {start: 1, end: 608}, posto: 6},
+    {title: '官场小说', id: 7, page: {start: 1, end: 339}, posto: 9},
+    {title: '穿越小说', id: 8, page: {start: 1, end: 519}, posto: 7},
+    {title: '其他小说', id: 9, page: {start: 1, end: 25}, posto: 8}
 ];
 
-var filter = ['【(.*?)】'];
+var filter = ['【(.*?)】', '全本书-免费全本小说阅读网'];
 
 function getBaseUrl() {
     return project.baseUrl;
@@ -54,7 +54,7 @@ function getBooks(html) {
         var a = liArray[i].select("span.s2 > a");
         var name = a.text();
         var url = a.attr('href');
-        var author = liArray[i].select("span.s3").text();
+        var author = liArray[i].select("span.s3").text().trim();
         var status = 0;
         var statusStr = liArray[i].select("span.s5").text();
         if (statusStr === '连载') {
@@ -75,16 +75,26 @@ function getBooks(html) {
 function getBookDetail(html) {
     //获取基本信息
     var $ = native_jparse.parse(html);
-    var name = $.select("#info > h1").text();
-    var author = $.select("#info > p:nth-child(2)").text().replaceAll('作(.*)者：', '');
-    var lastime = $.select("#info > p:nth-child(4)").text().replaceAll('最后更新(.*)：', '')
-    var img = $.select("#fmimg > img").attr('src');
-    var intro = $.select("#intro > p:nth-child(2)").text();
+    var url = $.select("link[rel='alternate']").attr('href');
+    var name = $.select("#container > div.bookinfo > div > h1").text();
+    var author = $.select("#container > div.bookinfo > div > em > a").text()
+        .replaceAll('作(.*)者：', '').trim();
+
+    var lastime = $.select("#container > div.bookinfo > p.stats > span.fr > i").text();
+    if (lastime !== '') {
+        lastime = Date.parse(lastime) / 1000;
+    }
+
+    var regs = url.match(/(\d+)\/(\d+)/);
+    var img = getBaseUrl() + '/files/article/image/' + regs[1] + '/' + regs[2] + '/' + regs[2] + 's.jpg'
+    var intro = $.select("#container > div.bookinfo > p.intro").text()
+        .replaceAll('内容简介：', '');
+
     //获取章节
     var chapters = [];
-    var aArray = $.select("#list > dl > dd > a");
+    var aArray = $.select("#main > div > dl dt").last().nextElementSiblings().select('a');
     for (var i = 0; i < aArray.length; i++) {
-        chapters.push({title: aArray[i].text(), url: aArray[i].attr('href')});
+        chapters.push({title: aArray[i].text(), url: getBaseUrl() + aArray[i].attr('href')});
     }
 
     return {name: name, author: author, img: img, intro: filterStr(intro), lastime: lastime, chapters: chapters};
@@ -97,9 +107,10 @@ function getBookDetail(html) {
  */
 function getChapterContent(html) {
     var $ = native_jparse.parse(html);
-    $.select('#content > p').remove();
-    var content = $.select('#content').html();
-    return {content: content};
+    $.select('#BookText > a').remove();
+    var title = $.select('#BookCon > h1').text();
+    var content = $.select('#BookText').html();
+    return {title: title, content: filterStr(content)};
 }
 
 

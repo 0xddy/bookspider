@@ -2,7 +2,7 @@
 <html lang="zh" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>管理面板</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css"
@@ -39,6 +39,25 @@
 
     <script>
 
+        function startCrawNovels(js) {
+            $.get('/api/crawNovels?js=' + js, function (n) {
+                let json = JSON.parse(n);
+                if (json.status === 400) {
+                    alert('任务运行中，请先停止')
+                } else if (json.status === 200) {
+                    window.location.reload();
+                } else {
+                    alert('启动任务失败')
+                }
+            });
+        }
+
+        function stopCrawNovels(js) {
+            $.get('/api/crawNovelsStop?js=' + js, function (n) {
+                window.location.reload();
+            });
+        }
+
         function startCrawPages(js) {
             $.get('/api/crawPages?js=' + js, function (n) {
                 let json = JSON.parse(n);
@@ -53,7 +72,7 @@
         }
 
         function stopCrawPages(js) {
-            $.get('/api/crawStop?js=' + js, function (n) {
+            $.get('/api/crawPagesStop?js=' + js, function (n) {
                 window.location.reload();
             });
         }
@@ -88,15 +107,23 @@
                     </li>
                 </ul>
 
-                <div>
-                    <a th:href="'javascript:'+${project.isRun()?'stop':'start'}+'CrawPages(\''+${project.getFileName()}+'\');'"
-                       th:class="${project.isRun()?'btn btn-danger':'btn btn-success'}"
+                <div th:with="pageRun = ${T(cn.lmcw.bookspider.spider.SpiderService).taskRunning(project.getId(),'page')}
+                ,novelsRun = ${T(cn.lmcw.bookspider.spider.SpiderService).taskRunning(project.getId(),'novels')}">
+
+                    <a th:href="'javascript:'+${pageRun?'stop':'start'}+'CrawPages(\''+${project.getFileName()}+'\');'"
+                       th:class="${pageRun?'btn btn-danger':'btn btn-success'}"
                        role="button"
-                       th:text="${project.isRun()?'停止':'采集分类列表'}"></a>
+                       th:text="${pageRun?'停止':'采集分类列表'}"></a>
 
 
+                    <a th:href="'javascript:'+${novelsRun?'stop':'start'}+'CrawNovels(\''+${project.getFileName()}+'\');'"
+                       th:class="${novelsRun?'btn btn-danger':'btn btn-success'}"
+                       role="button"
+                       th:text="${novelsRun?'停止':'采集小说'}"></a>
 
                 </div>
+
+
             </div>
         </div>
 

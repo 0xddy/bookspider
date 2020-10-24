@@ -13,6 +13,4 @@ public class Project {
 
     private String fileName;
 
-    private boolean isRun;
-
 }

@@ -2,9 +2,11 @@ package cn.lmcw.bookspider.web.bookurl.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.io.Serializable;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.io.Serializable;
 
 /**
  * <p>
@@ -15,6 +17,7 @@ import lombok.EqualsAndHashCode;
  * @since 2020-10-07
  */
 @Data
+@TableName(value = "sp_bookurl")
 @EqualsAndHashCode(callSuper = false)
 public class Bookurl implements Serializable {
 

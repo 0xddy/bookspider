@@ -13,6 +13,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Properties;
 import java.util.Scanner;
 
 @SpringBootApplication
@@ -20,9 +21,22 @@ import java.util.Scanner;
 public class BookSpiderApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(BookSpiderApplication.class, args);
 
+        //Properties systemProperties = System.getProperties();
+        //systemProperties.setProperty("http.proxyHost", "192.168.0.100");
+        //systemProperties.setProperty("http.proxyPort", "1088");
+
+        //ImageUtils.IsCompletedImage(System.getProperty("user.dir")+"/thumb/d5c38ba9cf6111bd1b927ffd6fe513b6.jpg");
+        SpringApplication.run(BookSpiderApplication.class, args);
         //initMapper();
+
+//        try {
+//            Document document = Jsoup.connect("https://www.quanben.net/303/303290/").get();
+//            String s = document.select("#main > div > dl dt").last().nextElementSiblings().html();
+//            System.out.println(s);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
 
@@ -70,7 +84,7 @@ public class BookSpiderApplication {
         strategy.setColumnNaming(NamingStrategy.no_change);
         strategy.setEntityLombokModel(true);
         strategy.setRestControllerStyle(true);
-        strategy.setInclude("bookurl");
+        strategy.setInclude("book");
         // 公共父类
         //strategy.setSuperControllerClass("你自己的父类控制器,没有就不用设置!");
         // 写于父类中的公共字段
@@ -82,6 +96,7 @@ public class BookSpiderApplication {
         //mpg.setTemplateEngine(new FreemarkerTemplateEngine());
         mpg.execute();
     }
+
     public static String scanner(String tip) {
         Scanner scanner = new Scanner(System.in);
         StringBuilder help = new StringBuilder();

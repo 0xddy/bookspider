@@ -1,9 +1,6 @@
 package cn.lmcw.bookspider.parse;
 
-import cn.lmcw.bookspider.model.Book;
-import cn.lmcw.bookspider.model.BookHref;
-import cn.lmcw.bookspider.model.Category;
-import cn.lmcw.bookspider.model.Project;
+import cn.lmcw.bookspider.model.*;
 import com.google.gson.GsonBuilder;
 import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
@@ -69,10 +66,13 @@ public class EngineBridge implements IBridge {
                 Category category = new Category();
                 category.setId((int) map.get("id"));
                 category.setTitle((String) map.get("title"));
+                category.setPosto((int) map.get("posto"));
+
                 Category.PageDTO pageDTO = new Category.PageDTO();
                 pageDTO.setStart((int) page.get("start"));
                 pageDTO.setEnd((int) page.get("end"));
                 category.setPage(pageDTO);
+
                 map = page = null;
                 return Stream.of(category);
             }
@@ -110,7 +110,7 @@ public class EngineBridge implements IBridge {
         ScriptObjectMirror scriptObjectMirror = (ScriptObjectMirror) scriptEngine.invokeFunction("getBookDetail", html);
         String name = (String) scriptObjectMirror.get("name");
         String author = (String) scriptObjectMirror.get("author");
-        String lastime = (String) scriptObjectMirror.get("lastime");
+        double lastime = (double) scriptObjectMirror.get("lastime");
         String img = (String) scriptObjectMirror.get("img");
         String intro = (String) scriptObjectMirror.get("intro");
 
@@ -119,7 +119,7 @@ public class EngineBridge implements IBridge {
         book.setAuthor(author);
         book.setImg(img);
         book.setIntro(intro);
-        book.setLastime(lastime);
+        book.setLastime((int) lastime);
 
         if (scriptObjectMirror.containsKey("chapters")) {
             List<Book.Chapter> chapters = ((ScriptObjectMirror) scriptObjectMirror.get("chapters")).values()
@@ -143,8 +143,15 @@ public class EngineBridge implements IBridge {
     }
 
     @Override
-    public String getChapterContent(String html) {
-        return invokeFunctionToString("getChapterContent", html);
+    public ChapterContent getChapterContent(String html) throws ScriptException, NoSuchMethodException {
+        ScriptObjectMirror chapterObject = (ScriptObjectMirror) scriptEngine
+                .invokeFunction("getChapterContent", html);
+
+        ChapterContent chapterContent = new ChapterContent();
+        chapterContent.setTitle((String) chapterObject.get("title"));
+        chapterContent.setContent((String) chapterObject.get("content"));
+
+        return chapterContent;
     }
 
     @Override
@@ -161,6 +168,34 @@ public class EngineBridge implements IBridge {
         return projectModel;
     }
 
+    @Override
+    public String getCharset() {
+        String htmlCharset = "utf-8";
+        try {
+            htmlCharset = (String) scriptEngine.get("charset");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return htmlCharset;
+    }
+
+    public int getCategoryMappingId(String categoryName) {
+        int mappingId = 0;
+        try {
+
+            List<Category> categories = getCategory();
+            for (Category category : categories) {
+                if (category.getTitle().equals(categoryName)) {
+                    mappingId = category.getPosto();
+                    break;
+                }
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return mappingId;
+    }
 
     private String invokeFunctionToString(String funcName, Object... args) {
         try {

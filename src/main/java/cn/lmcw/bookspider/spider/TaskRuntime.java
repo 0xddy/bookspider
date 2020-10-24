@@ -9,7 +9,8 @@ import java.util.concurrent.*;
 public class TaskRuntime {
 
     private ExecutorService executorService;
-    private Conf conf;
+    private Object tag;
+    private final Conf conf;
 
     public TaskRuntime(Conf conf) {
         if (conf.type == 1) {
@@ -34,19 +35,30 @@ public class TaskRuntime {
         }
     }
 
+    public TaskRuntime setTag(Object tag) {
+        this.tag = tag;
+        return this;
+    }
+
+    public Object getTag() {
+        return tag == null ? "" : tag;
+    }
 
     /**
-     *
-     *
      * @param runnable
      * @return
      */
     public Future<?> commit(Runnable runnable) {
-        if (executorService != null && executorService instanceof ScheduledExecutorService) {
-            return ((ScheduledExecutorService) executorService).scheduleAtFixedRate(runnable, 1, conf.period, TimeUnit.SECONDS);
-        } else {
-            return executorService.submit(runnable);
+        try {
+            if (executorService != null && executorService instanceof ScheduledExecutorService) {
+                return ((ScheduledExecutorService) executorService).scheduleAtFixedRate(runnable, 1, conf.period, TimeUnit.SECONDS);
+            } else {
+                return executorService.submit(runnable);
+            }
+        } catch (Exception e) {
+            //e.printStackTrace();
         }
+        return null;
     }
 
     public ExecutorService getExecutorService() {

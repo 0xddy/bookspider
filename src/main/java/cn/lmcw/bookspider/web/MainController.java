@@ -5,10 +5,12 @@ import cn.lmcw.bookspider.model.BookHref;
 import cn.lmcw.bookspider.model.Category;
 import cn.lmcw.bookspider.model.Project;
 import cn.lmcw.bookspider.parse.EngineBridge;
+import cn.lmcw.bookspider.spider.BooksSpiderService;
 import cn.lmcw.bookspider.spider.CategorySpiderService;
 import cn.lmcw.bookspider.spider.SpiderService;
 import cn.lmcw.bookspider.spider.TaskRuntime;
 import cn.lmcw.bookspider.store.MysqlStoreImpl;
+import cn.lmcw.bookspider.web.bookurl.service.IBookurlService;
 import cn.lmcw.bookspider.web.model.Alert;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +24,13 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 @Controller
 public class MainController {
+
     @Autowired
     private MysqlStoreImpl mysqlStore;
+
 
     @RequestMapping("/")
     public String main(Model model) {
@@ -47,12 +50,11 @@ public class MainController {
                     try {
                         EngineBridge engineBridge = new EngineBridge(siteJs.getPath());
                         Project project = engineBridge.project();
-                        project.setRun(SpiderService.taskRunning(project.getId()));
                         projects.add(project);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-
+                    // SpiderService.taskRunning(project.getId())
                 });
                 model.addAttribute("store", mysqlStore);
                 model.addAttribute("projects", projects);
@@ -63,11 +65,24 @@ public class MainController {
     }
 
     @ResponseBody
-    @GetMapping("/api/crawStop")
-    public Object stopCraw(String js) {
+    @GetMapping("/api/crawPagesStop")
+    public Object stopCrawPages(String js) {
         try {
             EngineBridge engineBridge = new EngineBridge(System.getProperty("user.dir") + "/site/" + js);
-            SpiderService.removeScheduleTask(engineBridge.project().getId());
+            SpiderService.removeScheduleTask(engineBridge.project().getId(), "page");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "{\"status\":200}";
+    }
+
+    @ResponseBody
+    @GetMapping("/api/crawNovelsStop")
+    public Object stopCrawNovels(String js) {
+        try {
+            EngineBridge engineBridge = new EngineBridge(System.getProperty("user.dir") + "/site/" + js);
+            SpiderService.removeScheduleTask(engineBridge.project().getId(), "novels");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -80,14 +95,15 @@ public class MainController {
     public Object crawPages(String js) {
         try {
             EngineBridge engineBridge = new EngineBridge(System.getProperty("user.dir") + "/site/" + js);
-            if (SpiderService.taskRunning(engineBridge.project().getId())) {
+            if (SpiderService.taskRunning(engineBridge.project().getId(), "page")) {
                 return "{\"status\":400}";
             }
             TaskRuntime.Conf conf = new TaskRuntime.Conf();
             conf.type = 3;
-            conf.period = 20000;
+            conf.period = 86400;
             conf.threads = 15;
             TaskRuntime taskRuntime = new TaskRuntime(conf);
+            taskRuntime.setTag("page");
             CategorySpiderService spiderService = new CategorySpiderService();
             spiderService.setEngineBridge(engineBridge);
             spiderService.setRuntime(taskRuntime);
@@ -114,5 +130,36 @@ public class MainController {
 
         return "{\"status\":200}";
     }
+
+
+    @ResponseBody
+    @GetMapping("/api/crawNovels")
+    public Object crawNovels(String js) {
+
+        try {
+            EngineBridge engineBridge = new EngineBridge(System.getProperty("user.dir") + "/site/" + js);
+            //EngineBridge engineBridge = new EngineBridge(System.getProperty("user.dir") + "/site/全本小说.js");
+            if (SpiderService.taskRunning(engineBridge.project().getId(), "novels")) {
+                return "{\"status\":400}";
+            }
+            TaskRuntime.Conf conf = new TaskRuntime.Conf();
+            conf.type = 3;
+            conf.period = 86400;
+            conf.threads = 40;
+            TaskRuntime taskRuntime = new TaskRuntime(conf);
+            taskRuntime.setTag("novels");
+            BooksSpiderService spiderService = new BooksSpiderService();
+            spiderService.setEngineBridge(engineBridge);
+            spiderService.setRuntime(taskRuntime);
+            spiderService.setStore(mysqlStore);
+            spiderService.crawNovels();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return "{\"status\":200}";
+    }
+
 
 }

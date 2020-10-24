@@ -9,29 +9,8 @@ public class Category {
     private int id;
     private PageDTO page;
 
-    public String getTitle() {
-        return title;
-    }
+    private int posto;
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public PageDTO getPage() {
-        return page;
-    }
-
-    public void setPage(PageDTO page) {
-        this.page = page;
-    }
 
     @Data
     public static class PageDTO {

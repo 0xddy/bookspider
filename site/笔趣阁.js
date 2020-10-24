@@ -7,16 +7,18 @@ var project = {
     name: '笔趣阁采集规则',
     author: '桥下红药',
     version: "1.0",
-    baseUrl: 'http://www.biquge.info'
+    baseUrl: 'https://www.guibuyu.org'
 };
 
+var charset = 'gbk';
+
 var category = [
-    {title: '玄幻小说', id: 1, page: {start: 1, end: 672}},
-    {title: '修真小说', id: 2, page: {start: 1, end: 278}},
-    {title: '都市小说', id: 3, page: {start: 1, end: 900}},
-    {title: '穿越小说', id: 4, page: {start: 1, end: 203}},
-    {title: '网游小说', id: 5, page: {start: 1, end: 225}},
-    {title: '科幻小说', id: 6, page: {start: 1, end: 808}}
+    {title: '玄幻小说', id: 1, page: {start: 1, end: 829}},
+    {title: '修真小说', id: 2, page: {start: 1, end: 399}},
+    {title: '都市小说', id: 3, page: {start: 1, end: 480}},
+    {title: '军事历史', id: 4, page: {start: 1, end: 203}},
+    {title: '网游小说', id: 5, page: {start: 1, end: 127}},
+    {title: '科幻灵异', id: 6, page: {start: 1, end: 327}}
 ];
 
 var filter = ['【(.*?)】'];
@@ -36,7 +38,21 @@ function getCategory() {
  * @returns {string}
  */
 function getPageUrl(cateId, currentPage) {
-    return getBaseUrl() + '/list/' + cateId + '_' + currentPage + '.html';
+    var cateUrl = '';
+    if (cateId === 1) {
+        cateUrl = 'xuanhuan'
+    } else if (cateId === 2) {
+        cateUrl = 'wuxia';
+    } else if (cateId === 3) {
+        cateUrl = 'dushi';
+    } else if (cateId === 4) {
+        cateUrl = 'junshi';
+    } else if (cateId === 5) {
+        cateUrl = 'youxi';
+    } else if (cateId === 6) {
+        cateUrl = 'kehuan';
+    }
+    return getBaseUrl() + '/' + cateUrl + '/' + cateId + '_' + currentPage + '.html';
 }
 
 /**
@@ -48,6 +64,7 @@ function getBooks(html) {
     var $ = native_jparse.parse(html);
     var liArray = $.select("#newscontent > div.l > ul > li");
     for (var i = 0; i < liArray.length; i++) {
+
         var a = liArray[i].select("span.s2 > a");
         var name = a.text();
         var url = a.attr('href');

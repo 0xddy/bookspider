@@ -1,9 +1,6 @@
 package cn.lmcw.bookspider.parse;
 
-import cn.lmcw.bookspider.model.Book;
-import cn.lmcw.bookspider.model.BookHref;
-import cn.lmcw.bookspider.model.Category;
-import cn.lmcw.bookspider.model.Project;
+import cn.lmcw.bookspider.model.*;
 
 import javax.script.ScriptException;
 import java.util.List;
@@ -20,8 +17,10 @@ public interface IBridge {
 
     Book getBookDetail(String html) throws ScriptException, NoSuchMethodException;
 
-    String getChapterContent(String html);
+    ChapterContent getChapterContent(String html) throws ScriptException, NoSuchMethodException;
 
     Project project();
+
+    String getCharset();
 
 }
